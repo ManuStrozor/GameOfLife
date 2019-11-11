@@ -18,7 +18,7 @@ public class Draw extends JPanel {
         this.board = board;
 
         Stats stats = new Stats(size, board, clock);
-        stats.setBounds(size + Gui.PAD*2, Gui.PAD-1, 150, size+1);
+        stats.setBounds(size + Gui.PAD*2, Gui.PAD-1, Gui.STATS_WIDTH, size+1);
         this.add(stats);
     }
 

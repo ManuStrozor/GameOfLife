@@ -7,10 +7,23 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Board {
 
     /**
-     * Attributs : un plateau a une taille, un numéro de génération et des cellules
+     * Attributs : un plateau a une taille, un numéro de génération, des cellules
+     * et un canon tout mignon !
      */
     private int size, gen;
     private ArrayList<Cell> cells;
+    private int[][] canon = new int[][] {
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
+            {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    };
+
     private HashMap<Cell, Boolean> changes = new HashMap<>();
 
     /**
@@ -51,19 +64,12 @@ public class Board {
         return neighbors;
     }
 
-    public boolean setXYAmbrion(int offX, int offY, int[][] ambrion) {
-        int maxLength = 0;
-        for (int[] line : ambrion) maxLength = Math.max(maxLength, line.length);
-        if (maxLength == 0) return false;
-        if (maxLength + offX <= size && ambrion.length + offY <= size) {
-            return false;
-        } else {
-            for (int y = 0; y < ambrion.length; y++) {
-                for (int x = 0; x < ambrion[y].length; x++) {
-                    if (ambrion[y][x] == 1) cells.get((offY + y) * size + (offX + x)).setAlive(true);
-                }
+    public void setCanon() {
+        apocalypse();
+        for (int y = 0; y < canon.length; y++) {
+            for (int x = 0; x < canon[y].length; x++) {
+                if (canon[y][x] == 1) cells.get(y * size + x).setAlive(true);
             }
-            return true;
         }
     }
 
@@ -124,8 +130,36 @@ public class Board {
     }
 
     public void setSize(int size) {
+        ArrayList<Cell> cells = new ArrayList<>();
+        if (this.cells != null && this.size < size) {
+            for (int y = 0; y < this.size; y++) {
+                for (int x = 0; x < this.size; x++) {
+                    cells.add(this.cells.get(y * this.size + x));
+                }
+                for (int i = 0; i < size - this.size; i++) {
+                    cells.add(new Cell(this.size+i, y));
+                }
+            }
+            for (int y = this.size; y < size; y++) {
+                for (int x = 0; x < size; x++) {
+                    cells.add(new Cell(x, y));
+                }
+            }
+        } else {
+            for (int y = 0; y < size; y++) {
+                for (int x = 0; x < size; x++) {
+                    if (this.cells != null && this.size > size) {
+                        Cell oldCell = this.cells.get(y * this.size + x);
+                        if (oldCell.isAlive()) cells.add(oldCell);
+                        else cells.add(new Cell(x, y));
+                    } else {
+                        cells.add(new Cell(x, y));
+                    }
+                }
+            }
+        }
+        this.cells = cells;
         this.size = size;
-        setCells();
     }
 
     public int getSize() {

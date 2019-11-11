@@ -1,6 +1,7 @@
 package engine.panels;
 
 import engine.Clock;
+import engine.Gui;
 import game.Board;
 import javax.swing.*;
 import java.awt.*;
@@ -10,8 +11,7 @@ public class Stats extends JPanel {
     private int size;
     private Board board;
     private Clock clock;
-
-    private JLabel labelSpeed;
+    private JLabel speed;
 
     Stats(int size, Board board, Clock clock) {
         this.setLayout(new FlowLayout());
@@ -22,69 +22,89 @@ public class Stats extends JPanel {
     }
 
     private void init() {
-        JButton pauseButton = new JButton("Start");
-        JButton setupButton = new JButton("Setup");
-
+        JButton pauseButton = new JButton("Démarrer");
+        JButton exitButton = new JButton("Quitter");
+        JSeparator separator = new JSeparator();
+        separator.setPreferredSize(new Dimension(Gui.STATS_WIDTH, 0));
         JSlider clockSlider = new JSlider();
-        clockSlider.setPreferredSize(new Dimension(150, 30));
+        clockSlider.setPreferredSize(new Dimension(Gui.STATS_WIDTH, 30));
         clockSlider.setMinimum(1);
         clockSlider.setValue(clock.getSpeed());
         clockSlider.setMaximum(150);
         clockSlider.setInverted(true);
-
-        JTextField sizeField = new JTextField(""+board.getSize());
-        sizeField.setColumns(10);
+        JComboBox<Object> sizeCombo = new JComboBox<>(new Object[] {
+                "40", "50", "80", "100", "160", "200", "400", "800"
+        });
+        sizeCombo.setSelectedIndex(6);
+        JButton aleaButton = new JButton("Aléatoire");
+        JButton canonButton = new JButton("Canon");
         JButton clearButton = new JButton("Apocalypse");
-        JButton exitButton = new JButton("Quit");
 
         pauseButton.addActionListener(e -> {
             if (!clock.isPaused() || board.getPopulation() > 0) clock.pause();
             else board.setup(3);
             if (!clock.isPaused()) pauseButton.setText("Pause");
-            else pauseButton.setText("Start");
+            else pauseButton.setText("Démarrer");
         });
 
-        setupButton.addActionListener(e -> {
-            pause(pauseButton);
+        aleaButton.addActionListener(e -> {
+            makePause(pauseButton);
             board.setup(3);
         });
 
         clockSlider.addChangeListener(e -> clock.setSpeed(clockSlider.getValue()));
 
-        sizeField.addActionListener(e -> {
-            pause(pauseButton);
+        sizeCombo.addActionListener(e -> {
+            makePause(pauseButton);
             int val = board.getSize();
             try {
-                val = Integer.parseInt(sizeField.getText());
+                val = Integer.parseInt(sizeCombo.getSelectedItem().toString());
             } catch(NumberFormatException ignored) {}
-            if (val >= 4 && val <= size) {
-                board.setSize(val);
-                board.setup(3);
-            }
+            board.setSize(val);
+            //board.setup(3);
         });
 
         clearButton.addActionListener(e -> {
-            pause(pauseButton);
+            makePause(pauseButton);
             board.apocalypse();
+        });
+
+        canonButton.addActionListener(e -> {
+            makePause(pauseButton);
+            board.setCanon();
         });
 
         exitButton.addActionListener(e -> System.exit(0));
 
         this.add(pauseButton);
-        this.add(setupButton);
-        labelSpeed = new JLabel("Speed : " + clock.getSpeed());
-        this.add(labelSpeed);
-        this.add(clockSlider);
-        this.add(new JLabel("Size :"));
-        this.add(sizeField);
-        this.add(clearButton);
         this.add(exitButton);
+        this.add(speed = new JLabel(speedify(clock.getSpeed())));
+        this.add(clockSlider);
+        this.add(new JLabel("Taille :"));
+        this.add(sizeCombo);
+        this.add(separator);
+        this.add(aleaButton);
+        this.add(canonButton);
+        this.add(clearButton);
     }
 
-    private void pause(JButton btn) {
+    private void makePause(JButton btn) {
         if (!clock.isPaused()) {
             clock.pause();
-            btn.setText("Start");
+            btn.setText("Démarrer");
+        }
+    }
+
+    private String speedify(int speed) {
+        String s = "Vitesse : ";
+        if (speed <= 10) {
+            return s+"très rapide";
+        } else if (speed <= 50) {
+            return s+"rapide";
+        } else if (speed <= 100) {
+            return s+"lente";
+        } else {
+            return s+"très lente";
         }
     }
 
@@ -92,9 +112,9 @@ public class Stats extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        labelSpeed.setText("Speed : " + clock.getSpeed());
-        int cnt = board.getPopulation();
+        speed.setText(speedify(clock.getSpeed()));
+
         g.setColor(Color.BLACK);
-        g.drawString("Pop: " + cnt, 0, size);
+        g.drawString("Population: " + board.getPopulation(), 0, size);
     }
 }

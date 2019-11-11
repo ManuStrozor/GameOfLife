@@ -7,7 +7,8 @@ import javax.swing.*;
 
 public class Gui {
 
-    public static final int PAD = 4;
+    public static final int STATS_WIDTH = 200;
+    public static final int PAD = 5;
 
     private Board board;
     private int size;
@@ -19,7 +20,7 @@ public class Gui {
 
     public void create(Clock clock) {
         JFrame f = new JFrame("Game Of Life");
-        f.setSize(size+PAD*2 + 15 + 150 + PAD, size+PAD*2 + 40);
+        f.setSize(size+PAD*2 + 15 + STATS_WIDTH + PAD, size+PAD*2 + 39);
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setLocationRelativeTo(null);
         f.setResizable(false);
