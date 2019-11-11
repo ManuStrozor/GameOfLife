@@ -11,6 +11,8 @@ public class Stats extends JPanel {
     private Board board;
     private Clock clock;
 
+    private JLabel labelSpeed;
+
     Stats(int size, Board board, Clock clock) {
         this.setLayout(new FlowLayout());
         this.size = size;
@@ -27,7 +29,7 @@ public class Stats extends JPanel {
         clockSlider.setPreferredSize(new Dimension(150, 30));
         clockSlider.setMinimum(1);
         clockSlider.setValue(clock.getSpeed());
-        clockSlider.setMaximum(50);
+        clockSlider.setMaximum(150);
         clockSlider.setInverted(true);
 
         JTextField sizeField = new JTextField(""+board.getSize());
@@ -36,26 +38,21 @@ public class Stats extends JPanel {
         JButton exitButton = new JButton("Quit");
 
         pauseButton.addActionListener(e -> {
-            clock.pause();
+            if (!clock.isPaused() || board.getPopulation() > 0) clock.pause();
+            else board.setup(3);
             if (!clock.isPaused()) pauseButton.setText("Pause");
             else pauseButton.setText("Start");
         });
 
         setupButton.addActionListener(e -> {
-            if (!clock.isPaused()) {
-                clock.pause();
-                pauseButton.setText("Start");
-            }
+            pause(pauseButton);
             board.setup(3);
         });
 
         clockSlider.addChangeListener(e -> clock.setSpeed(clockSlider.getValue()));
 
         sizeField.addActionListener(e -> {
-            if (!clock.isPaused()) {
-                clock.pause();
-                pauseButton.setText("Start");
-            }
+            pause(pauseButton);
             int val = board.getSize();
             try {
                 val = Integer.parseInt(sizeField.getText());
@@ -67,18 +64,16 @@ public class Stats extends JPanel {
         });
 
         clearButton.addActionListener(e -> {
+            pause(pauseButton);
             board.apocalypse();
-            if (!clock.isPaused()) {
-                clock.pause();
-                pauseButton.setText("Start");
-            }
         });
 
         exitButton.addActionListener(e -> System.exit(0));
 
         this.add(pauseButton);
         this.add(setupButton);
-        this.add(new JLabel("Speed :"));
+        labelSpeed = new JLabel("Speed : " + clock.getSpeed());
+        this.add(labelSpeed);
         this.add(clockSlider);
         this.add(new JLabel("Size :"));
         this.add(sizeField);
@@ -86,14 +81,20 @@ public class Stats extends JPanel {
         this.add(exitButton);
     }
 
+    private void pause(JButton btn) {
+        if (!clock.isPaused()) {
+            clock.pause();
+            btn.setText("Start");
+        }
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        int cnt = board.countAffected();
-        if (cnt > 0) {
-            g.setColor(Color.BLACK);
-            g.drawString("Pop: " + cnt, 0, size);
-        }
+        labelSpeed.setText("Speed : " + clock.getSpeed());
+        int cnt = board.getPopulation();
+        g.setColor(Color.BLACK);
+        g.drawString("Pop: " + cnt, 0, size);
     }
 }

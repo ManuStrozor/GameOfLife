@@ -48,6 +48,11 @@ public class Clock extends Thread {
             }
         } else {
             paused = true;
+            try {
+                sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 

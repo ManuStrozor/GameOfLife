@@ -25,25 +25,42 @@ public class Board {
 
     public void cycle() {
         for (Cell c : cells) {
-            int n = c.neighbors(cells, size);
+            int n = neighbors(c);
             if (n == 3) {
                 if (!c.isAlive()) changes.put(c, true);
             } else if (n != 2) {
                 if (c.isAlive()) changes.put(c, false);
             }
         }
-        changes.forEach(Cell::affect);
+        changes.forEach(Cell::setAlive);
         changes.clear();
         gen++;
     }
 
+    int neighbors(Cell c) {
+        int neighbors = 0;
+        int[] offX = {-1, 0, 1, -1, 1, -1, 0, 1};
+        int[] offY = {-1, -1, -1, 0, 0, 1, 1, 1};
+        for (int i = 0; i < 8; i++) {
+            int newX = c.getX() + offX[i];
+            int newY = c.getY() + offY[i];
+            if (newX >= 0 && newX < size && newY >= 0 && newY < size && cells.get(newY * size + newX).isAlive()) {
+                neighbors++;
+            }
+        }
+        return neighbors;
+    }
+
     public boolean setXYAmbrion(int offX, int offY, int[][] ambrion) {
-        if (!checkXYAmbrion(offX, offY, ambrion)) {
+        int maxLength = 0;
+        for (int[] line : ambrion) maxLength = Math.max(maxLength, line.length);
+        if (maxLength == 0) return false;
+        if (maxLength + offX <= size && ambrion.length + offY <= size) {
             return false;
         } else {
             for (int y = 0; y < ambrion.length; y++) {
                 for (int x = 0; x < ambrion[y].length; x++) {
-                    if (ambrion[y][x] == 1) cells.get((offY + y) * size + (offX + x)).affect(true);
+                    if (ambrion[y][x] == 1) cells.get((offY + y) * size + (offX + x)).setAlive(true);
                 }
             }
             return true;
@@ -56,7 +73,7 @@ public class Board {
     public void setup(int val) {
         gen = 0;
         for (Cell c : cells) {
-            c.affect(randomize(val));
+            c.setAlive(randomize(val));
         }
     }
 
@@ -64,16 +81,10 @@ public class Board {
      * Toutes les cellules vivantes du plateau meurent
      */
     public void apocalypse() {
+        gen = 0;
         for (Cell c : cells) {
-            if (c.isAlive()) c.affect(false);
+            c.setAlive(false);
         }
-    }
-
-    private boolean checkXYAmbrion(int offX, int offY, int[][] ambrion) {
-        int maxLength = 0;
-        for (int[] line : ambrion) maxLength = Math.max(maxLength, line.length);
-        if (maxLength == 0) return false;
-        return maxLength + offX <= size && ambrion.length + offY <= size;
     }
 
     /**
@@ -86,7 +97,7 @@ public class Board {
         return ThreadLocalRandom.current().nextInt(1, val) == 1;
     }
 
-    public int countAffected() {
+    public int getPopulation() {
         int cnt = 0;
         for (Cell c : cells) {
             if (c.isAffected()) cnt++;

@@ -7,7 +7,7 @@ public class GameOfLife {
 
         Board board = new Board(100);
         Gui gui = new Gui(board, 800);
-        Clock clock = new Clock(board, 20);
+        Clock clock = new Clock(board, 50);
 
         int[][] ambrion = new int[][] {
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
