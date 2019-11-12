@@ -34,8 +34,9 @@ public class Draw extends JPanel {
         int s = size / board.getSize();
         for (Cell c : board.getCells()) {
             if (c.isAffected()) {
-                g.setColor(c.isAlive() ? Color.BLACK : Color.WHITE);
+                g.setColor(c.isAlive() ? (Stats.ageActive ? disapear(0x000000, c.getAge()) : Color.BLACK) : Color.white);
                 g.fillRect(c.getX() * s + Gui.PAD, c.getY() * s + Gui.PAD, s, s);
+                //g.fillOval(c.getX() * s + Gui.PAD, c.getY() * s + Gui.PAD, s, s);
                 if (!c.isAlive()) c.setAffected(false);
             }
         }
@@ -46,6 +47,18 @@ public class Draw extends JPanel {
         g.drawString(""+board.getGen(), Gui.PAD+2, Gui.PAD+11);
 
         repaint();
+    }
+
+    private Color disapear(int color, int age) {
+        int speed = Clock.speed;
+        int r = (color>>16)&0xFF;
+        int g = (color>>8)&0xFF;
+        int b = (color)&0xFF;
+        r += age/speed; r = Math.min(r, 240);
+        g += age/speed; g = Math.min(g, 240);
+        b += age/speed; b = Math.min(b, 240);
+        int newColor = (255<<24)|(r<<16)|(g<<8)|b;
+        return new Color(newColor);
     }
 
     private int textWidth(String text) {

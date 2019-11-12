@@ -41,8 +41,11 @@ public class Board {
             int n = neighbors(c);
             if (n == 3) {
                 if (!c.isAlive()) changes.put(c, true);
+                else c.setAge(c.getAge()+1);
             } else if (n != 2) {
                 if (c.isAlive()) changes.put(c, false);
+            } else {
+                if (c.isAlive()) c.setAge(c.getAge()+1);
             }
         }
         changes.forEach(Cell::setAlive);
@@ -79,6 +82,7 @@ public class Board {
     public void setup(int val) {
         gen = 0;
         for (Cell c : cells) {
+            c.setAge(0);
             c.setAlive(randomize(val));
         }
     }

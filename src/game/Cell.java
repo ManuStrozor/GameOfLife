@@ -1,10 +1,8 @@
 package game;
 
-import java.util.ArrayList;
-
 public class Cell {
 
-    private int x, y;
+    private int x, y, age = 0;
     private boolean affected = false, alive = false;
 
     Cell(int x, int y) {
@@ -27,6 +25,14 @@ public class Cell {
 
     public int getY() {
         return y;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = Math.min(age, Integer.MAX_VALUE-1);
     }
 
     public boolean isAffected() {

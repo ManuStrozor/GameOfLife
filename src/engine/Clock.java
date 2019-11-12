@@ -5,14 +5,14 @@ import game.Board;
 public class Clock extends Thread {
 
     private Board board;
-    private int speed;
+    public static int speed;
     private volatile boolean running = true;
     private volatile boolean paused = false;
     private final Object pauseLock = new Object();
 
     public Clock(Board board, int speed) {
         this.board = board;
-        this.speed = speed;
+        Clock.speed = speed;
     }
 
     @Override
@@ -60,11 +60,7 @@ public class Clock extends Thread {
         return paused;
     }
 
-    public int getSpeed() {
-        return speed;
-    }
-
     public void setSpeed(int speed) {
-        this.speed = speed;
+        Clock.speed = speed;
     }
 }
