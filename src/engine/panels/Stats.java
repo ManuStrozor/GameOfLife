@@ -5,6 +5,8 @@ import engine.Gui;
 import game.Board;
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Stats extends JPanel {
 
@@ -12,8 +14,11 @@ public class Stats extends JPanel {
     private Board board;
     private Clock clock;
     private JLabel speed;
-    private ButtonGroup ageOrNot;
-    public static boolean ageActive = true;
+    HashMap<String, JButton> b = new HashMap<>();
+    JCheckBox box;
+    JSlider slider;
+    JComboBox<Integer> combo;
+    static boolean ageActive = false;
 
     Stats(int size, Board board, Clock clock) {
         this.setLayout(new FlowLayout());
@@ -24,93 +29,59 @@ public class Stats extends JPanel {
     }
 
     private void init() {
-        JButton pauseButton = new JButton("Démarrer");
-        JButton exitButton = new JButton("Quitter");
-        JSeparator separator = new JSeparator();
-        separator.setPreferredSize(new Dimension(Gui.STATS_WIDTH, 0));
-        JSlider clockSlider = new JSlider();
-        clockSlider.setPreferredSize(new Dimension(Gui.STATS_WIDTH, 30));
-        clockSlider.setMinimum(5);
-        clockSlider.setValue(Clock.speed);
-        clockSlider.setMaximum(100);
-        clockSlider.setInverted(true);
-        JComboBox<Object> sizeCombo = new JComboBox<>(new Object[] {
-                "40", "50", "80", "100", "160", "200", "400", "800"
-        });
-        sizeCombo.setSelectedIndex(6);
-        JButton aleaButton = new JButton("Aléatoire");
-        JButton canonButton = new JButton("Canon");
-        JButton clearButton = new JButton("Apocalypse");
+        b.put("pause", new JButton("Démarrer"));
+        this.add(b.get("pause"));
+        b.put("quit", new JButton("Quitter"));
+        this.add(b.get("quit"));
 
-        ageOrNot = new ButtonGroup();
-        JRadioButton yes = new JRadioButton("oui", true);
-        JRadioButton no = new JRadioButton("non", false);
-        ageOrNot.add(yes);
-        ageOrNot.add(no);
+        box = new JCheckBox("Mode vieillesse");
+        this.add(box);
 
-        pauseButton.addActionListener(e -> {
-            if (!clock.isPaused() || board.getPopulation() > 0) clock.pause();
-            else board.setup(3);
-            if (!clock.isPaused()) pauseButton.setText("Pause");
-            else pauseButton.setText("Démarrer");
-        });
-
-        aleaButton.addActionListener(e -> {
-            makePause(pauseButton);
-            board.setup(3);
-        });
-
-        clockSlider.addChangeListener(e -> clock.setSpeed(clockSlider.getValue()));
-
-        sizeCombo.addActionListener(e -> {
-            makePause(pauseButton);
-            int val = board.getSize();
-            try {
-                val = Integer.parseInt(sizeCombo.getSelectedItem().toString());
-            } catch(NumberFormatException ignored) {}
-            board.setSize(val);
-        });
-
-        clearButton.addActionListener(e -> {
-            makePause(pauseButton);
-            board.apocalypse();
-        });
-
-        yes.addActionListener(e -> {
-            ageActive = true;
-        });
-
-        no.addActionListener(e -> {
-            ageActive = false;
-        });
-
-        canonButton.addActionListener(e -> {
-            makePause(pauseButton);
-            board.setCanon();
-        });
-
-        exitButton.addActionListener(e -> System.exit(0));
-
-        this.add(pauseButton);
-        this.add(exitButton);
+        slider = new JSlider();
         this.add(speed = new JLabel(speedify(Clock.speed)));
-        this.add(clockSlider);
-        this.add(new JLabel("Taille :"));
-        this.add(sizeCombo);
-        this.add(separator);
-        this.add(aleaButton);
-        this.add(canonButton);
-        this.add(clearButton);
-        JLabel vieillesse = new JLabel("Mode vieillesse des cellules :");
-        vieillesse.setPreferredSize(new Dimension(Gui.STATS_WIDTH, 20));
-        this.add(vieillesse);
-        this.add(yes); this.add(no);
+        this.add(slider);
+        configSlider(5, 150);
+
+        combo = new JComboBox<>(getBoardSizes(size));
+        this.add(new JLabel("Taille du plateau :"));
+        this.add(combo);
+        configCombo();
+
+        b.put("alea", new JButton("Aléatoire"));
+        this.add(b.get("alea"));
+        b.put("seed", new JButton("Graine"));
+        this.add(b.get("seed"));
+        b.put("clear", new JButton("Apocalypse"));
+        this.add(b.get("clear"));
+
+        this.makePause();
+        board.setSize((int) combo.getSelectedItem());
+        board.randSetup();
+
+        this.setActionListeners();
     }
 
-    private void makePause(JButton btn) {
+    private void configCombo() {
+        int i = 0;
+        while (i < combo.getItemCount() && combo.getItemAt(i) < board.getSize()) {
+            i++;
+        }
+        if (i < combo.getItemCount()) combo.setSelectedIndex(i);
+        else combo.setSelectedIndex(i-1);
+    }
+
+    private void configSlider(int min, int max) {
+        slider.setPreferredSize(new Dimension(Gui.STATS_WIDTH, 20));
+        slider.setMinimum(min);
+        slider.setValue(Clock.speed);
+        slider.setMaximum(max);
+        slider.setInverted(true);
+    }
+
+    private void makePause() {
         if (!clock.isPaused()) {
             clock.pause();
-            btn.setText("Démarrer");
+            b.get("pause").setText("Démarrer");
         }
     }
 
@@ -127,13 +98,65 @@ public class Stats extends JPanel {
         }
     }
 
+    private Integer[] getBoardSizes(int windowSize) {
+        ArrayList<Integer> t = new ArrayList<>();
+        for (int i = windowSize; i > 0; i--) {
+            float num = (float)windowSize / i;
+            if (num == (int)num && num >= board.getSeedSize()) t.add((int) num);
+        }
+        Integer[] tailles = new Integer[t.size()];
+        for (int i = 0; i < tailles.length; i++) {
+            tailles[i] = t.get(i);
+        }
+        return tailles;
+    }
+
+    private void setActionListeners() {
+        b.forEach((name, btn) -> {
+            switch (name) {
+                case "pause":
+                    btn.addActionListener(e -> {
+                        if (!clock.isPaused() || Draw.pop > 0) clock.pause();
+                        else board.randSetup();
+                        if (!clock.isPaused()) btn.setText("Pause");
+                        else btn.setText("Démarrer");
+                    });
+                    break;
+                case "quit":
+                    btn.addActionListener(e -> System.exit(0));
+                    break;
+                case "alea":
+                    btn.addActionListener(e -> {
+                        this.makePause();
+                        board.randSetup();
+                    });
+                    break;
+                case "seed":
+                    btn.addActionListener(e -> {
+                        this.makePause();
+                        board.setSeed();
+                    });
+                    break;
+                case "clear":
+                    btn.addActionListener(e -> {
+                        this.makePause();
+                        board.apocalypse();
+                    });
+                    break;
+            }
+        });
+        box.addActionListener(e -> ageActive = box.isSelected());
+        slider.addChangeListener(e -> clock.setSpeed(slider.getValue()));
+        combo.addActionListener(e -> {
+            this.makePause();
+            board.setSize((int) combo.getSelectedItem());
+        });
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
         speed.setText(speedify(Clock.speed));
-
-        g.setColor(Color.BLACK);
-        g.drawString("Population: " + board.getPopulation(), 0, size);
     }
 }

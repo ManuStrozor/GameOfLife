@@ -8,7 +8,9 @@ import java.awt.*;
 
 public class Draw extends JPanel {
 
-    private FontMetrics m;
+    public static int pop;
+
+    private Graphics g;
     private int size;
     private Board board;
 
@@ -24,27 +26,27 @@ public class Draw extends JPanel {
 
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        this.g = g;
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-        m = g.getFontMetrics(this.getFont());
 
         g.setColor(Color.RED);
         g.drawRect(Gui.PAD-1, Gui.PAD-1, size+1, size+1);
 
         int s = size / board.getSize();
+        int cnt = 0;
         for (Cell c : board.getCells()) {
             if (c.isAffected()) {
-                g.setColor(c.isAlive() ? (Stats.ageActive ? disapear(0x000000, c.getAge()) : Color.BLACK) : Color.white);
+                cnt++;
+                g.setColor(c.isAlive() ? (Stats.ageActive ? disapear(0x44444400, c.getAge()) : Color.BLACK) : Color.WHITE);
                 g.fillRect(c.getX() * s + Gui.PAD, c.getY() * s + Gui.PAD, s, s);
-                //g.fillOval(c.getX() * s + Gui.PAD, c.getY() * s + Gui.PAD, s, s);
                 if (!c.isAlive()) c.setAffected(false);
             }
         }
 
-        g.setColor(Color.WHITE);
-        g.fillRect(Gui.PAD+2, Gui.PAD, textWidth("" + board.getGen()), m.getHeight()-2);
-        g.setColor(Color.RED);
-        g.drawString(""+board.getGen(), Gui.PAD+2, Gui.PAD+11);
+        drawUnderlinedText("Gen : " + board.getGen(), Gui.PAD+2, Gui.PAD+11);
+        pop = cnt;
+        drawUnderlinedText("Pop : " + pop, Gui.PAD+2, Gui.PAD+26);
 
         repaint();
     }
@@ -61,7 +63,11 @@ public class Draw extends JPanel {
         return new Color(newColor);
     }
 
-    private int textWidth(String text) {
-        return m.stringWidth(text);
+    private void drawUnderlinedText(String text, int x, int y) {
+        FontMetrics m = g.getFontMetrics(this.getFont());
+        g.setColor(Color.WHITE);
+        g.fillRect(x, y-11, m.stringWidth(text), m.getHeight()-2);
+        g.setColor(Color.RED);
+        g.drawString(text, x, y);
     }
 }
